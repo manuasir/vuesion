@@ -1,90 +1,92 @@
 <template>
-  <ValidationProvider v-slot="{ errors }" ref="validator" :vid="id" :name="name" :rules="validation" tag="div">
-    <div :class="[$style.vueInput, disabled && $style.disabled, errors.length > 0 && $style.error]">
-      <vue-text
-        :for="id"
-        look="label"
-        :color="errors.length > 0 ? 'danger' : 'text-medium'"
-        :class="[$style.label, hideLabel && 'sr-only']"
-        as="label"
-      >
-        {{ label }}
-        <sup v-if="required">*</sup>
-      </vue-text>
+  <div :class="[$style.vueInput, disabled && $style.disabled, fieldValidation.valid === false && $style.error]">
+    <vue-text
+      :for="id"
+      look="label"
+      :color="fieldValidation.valid === false ? 'danger' : 'text-medium'"
+      :class="[$style.label, hideLabel && 'sr-only']"
+      as="label"
+    >
+      {{ label }}
+      <sup v-if="required">*</sup>
+    </vue-text>
 
+    <div
+      :class="[
+        $style.inputWrapper,
+        (leadingIcon || $slots.leadingIcon) && $style.hasLeadingContent,
+        (trailingIcon || $slots.trailingIcon) && $style.hasTrailingContent,
+        $style[size],
+      ]"
+    >
       <div
-        :class="[
-          $style.inputWrapper,
-          (leadingIcon || $slots.leadingIcon) && $style.hasLeadingContent,
-          (trailingIcon || $slots.trailingIcon) && $style.hasTrailingContent,
-          $style[size],
-        ]"
+        v-if="leadingIcon || $slots.leadingIcon"
+        :data-testid="`${id}-leading-icon`"
+        :class="$style.leading"
+        @click="$emit('leading-icon-click')"
       >
-        <div
-          v-if="leadingIcon || $slots.leadingIcon"
-          :data-testid="`${id}-leading-icon`"
-          :class="$style.leading"
-          @click="$emit('leading-icon-click')"
-        >
-          <slot name="leadingIcon">
-            <component :is="`vue-icon-${leadingIcon}`" />
-          </slot>
-        </div>
+        <slot name="leadingIcon">
+          <component :is="`vue-icon-${leadingIcon}`" />
+        </slot>
+      </div>
 
-        <input
-          :id="id"
-          ref="input"
-          :name="name"
-          :placeholder="placeholder"
-          :required="required"
-          :value="value"
-          :type="type"
-          :autocomplete="autocomplete"
-          :disabled="disabled"
-          :readonly="readonly"
-          :autofocus="autofocus"
-          :size="sizeAttribute"
-          v-bind="$attrs"
-          v-on="{
+      <input
+        :id="id"
+        ref="input"
+        :name="name"
+        :placeholder="placeholder"
+        :required="required"
+        :value="value"
+        :type="type"
+        :autocomplete="autocomplete"
+        :disabled="disabled"
+        :readonly="readonly"
+        :autofocus="autofocus"
+        :size="sizeAttribute"
+        v-bind="$attrs"
+        v-on="{
             ...$listeners,
             input: onInput,
           }"
-        />
+      />
 
-        <div
-          v-if="trailingIcon || $slots.trailingIcon"
-          :data-testid="`${id}-trailing-icon`"
-          :class="$style.trailing"
-          @click="$emit('trailing-icon-click')"
-        >
-          <slot name="trailingIcon">
-            <component :is="`vue-icon-${trailingIcon}`" />
-          </slot>
-        </div>
-      </div>
-
-      <vue-text
-        :color="errors.length > 0 ? 'danger' : 'text-medium'"
-        :class="[$style.description, hideDescription && 'sr-only']"
+      <div
+        v-if="trailingIcon || $slots.trailingIcon"
+        :data-testid="`${id}-trailing-icon`"
+        :class="$style.trailing"
+        @click="$emit('trailing-icon-click')"
       >
-        {{ errors.length > 0 ? errorMessage : description }}
-      </vue-text>
+        <slot name="trailingIcon">
+          <component :is="`vue-icon-${trailingIcon}`" />
+        </slot>
+      </div>
     </div>
-  </ValidationProvider>
+
+    <vue-text
+      :color="fieldValidation.valid === false ? 'danger' : 'text-medium'"
+      :class="[$style.description, hideDescription && 'sr-only']"
+    >
+      {{ fieldValidation.valid === false ? errorMessage : description }}
+    </vue-text>
+  </div>
 </template>
 
 <script lang="ts">
 import debounce from 'lodash/debounce';
-import { ValidationProvider } from 'vee-validate';
-import { defineComponent } from '@vue/composition-api';
+import { computed, defineComponent, inject } from '@vue/composition-api';
 import { useIntersectionObserver } from '@/composables/use-intersection-observer';
 import { getDomRef } from '@/composables/get-dom-ref';
 import { shirtSizeValidator } from '@/components/prop-validators';
+import {
+  registerFieldValidation,
+  registerFieldValidationDefault,
+} from '@/components/forms/VueForm/register-field-validation';
+import { IValidationRules } from '@/components/forms/VueForm/IForm';
 import VueText from '@/components/typography/VueText/VueText.vue';
 
 export default defineComponent({
   name: 'VueInput',
-  components: { VueText, ValidationProvider },
+  components: { VueText },
   inheritAttrs: false,
   props: {
     id: { type: String, required: true },
@@ -93,7 +95,7 @@ export default defineComponent({
     hideLabel: { type: Boolean, default: false },
     hideDescription: { type: Boolean, default: false },
     required: { type: Boolean, default: false },
-    validation: { type: [String, Object], default: null },
+    validation: { type: Object as () => IValidationRules, default: null },
     value: { type: [String, Number], default: null },
     disabled: { type: Boolean, default: false },
     placeholder: { type: String, default: null },
@@ -111,6 +113,15 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const input = getDomRef(null);
+    const registerValidation = inject(registerFieldValidation, registerFieldValidationDefault);
+    const fieldValidation = registerValidation(
+      props.id,
+      computed(() => props.value),
+      {
+        ...props.validation,
+        required: props.required,
+      },
+    );
     const debouncedInput = debounce((value: string) => emit('debounced-input', value), props.debounce || 0);
     const onInput = (e: InputEvent) => {
       const value = (e.target as HTMLInputElement).value;
@@ -130,6 +141,7 @@ export default defineComponent({
 
     return {
       input,
+      fieldValidation,
       onInput,
     };
   },
@@ -270,11 +282,9 @@ export default defineComponent({
   }
 
   .description {
-    display: flex;
-    height: $input-description-height;
+    display: block;
+    min-height: $input-description-height;
     margin-top: $input-description-gap;
-    white-space: nowrap;
-    width: 0;
   }
 }
 </style>

@@ -1,92 +1,85 @@
 <template>
-  <div ref="selectRef" :class="$style.vueSelect">
-    <ValidationProvider
-      v-slot="{ errors, validate }"
-      ref="validator"
-      :vid="id"
-      :name="name"
-      :rules="validation"
-      tag="div"
+  <div
+    ref="selectRef"
+    :class="[$style.vueSelect, disabled && $style.disabled, fieldValidation.valid === false && $style.error]"
+    @keydown="onKeyDown"
+  >
+    <vue-text
+      :for="id"
+      look="label"
+      :color="fieldValidation.valid === false ? 'danger' : 'text-medium'"
+      :class="[$style.label, hideLabel && 'sr-only']"
+      as="label"
     >
-      <div :class="[disabled && $style.disabled, errors.length > 0 && $style.error]" @keydown="onKeyDown">
-        <vue-text
-          :for="id"
-          look="label"
-          :color="errors.length > 0 ? 'danger' : 'text-medium'"
-          :class="[$style.label, hideLabel && 'sr-only']"
-          as="label"
-        >
-          {{ label }}
-          <sup v-if="required">*</sup>
-        </vue-text>
+      {{ label }}
+      <sup v-if="required">*</sup>
+    </vue-text>
 
-        <div :class="$style.selectWrapper">
-          <select
-            :id="id"
-            :data-testid="'native-' + id"
-            :name="name"
-            :title="label"
-            :required="required"
-            :disabled="disabled"
-            :multiple="multiSelect"
-            :class="[
+    <div :class="$style.selectWrapper">
+      <select
+        :id="id"
+        :data-testid="'native-' + id"
+        :name="name"
+        :title="label"
+        :required="required"
+        :disabled="disabled"
+        :multiple="multiSelect"
+        :class="[
               $style.nativeSelect,
               placeholder && inputValue.length === 0 && $style.hasPlaceholder,
               multiSelect && inputValue.length > 1 && $style.hasCount,
               $style[size],
             ]"
-            v-bind="$attrs"
-            v-on="{
+        v-bind="$attrs"
+        v-on="{
               ...$listeners,
               input: onInput,
             }"
-          >
-            <option v-if="placeholder && !inputValue" value="" disabled selected>{{ placeholder }}</option>
-            <option
-              v-for="(option, idx) in options"
-              :key="`${option.value}-${idx}`"
-              :value="option.value"
-              :selected="inputValue.includes(option.value)"
-            >
-              {{ option.label }}
-            </option>
-          </select>
+      >
+        <option v-if="placeholder && !inputValue" value="" disabled selected>{{ placeholder }}</option>
+        <option
+          v-for="(option, idx) in options"
+          :key="`${option.value}-${idx}`"
+          :value="option.value"
+          :selected="inputValue.includes(option.value)"
+        >
+          {{ option.label }}
+        </option>
+      </select>
 
-          <div
-            :id="'custom-' + id"
-            :data-testid="'custom-' + id"
-            :aria-expanded="show.toString()"
-            :class="[
+      <div
+        :id="'custom-' + id"
+        :data-testid="'custom-' + id"
+        :aria-expanded="show.toString()"
+        :class="[
               $style.customSelect,
               placeholder && inputValue.length === 0 && $style.hasPlaceholder,
               multiSelect && inputValue.length > 1 && $style.hasCount,
               $style[size],
             ]"
-            :tabindex="disabled ? -1 : 0"
-            role="listbox"
-            @click.stop.prevent="toggleMenu"
-            @blur="validate"
-          >
-            {{ displayItem ? displayItem.label : placeholder }}
-          </div>
-
-          <vue-badge v-if="multiSelect && inputValue.length > 1" :status="badgeStatus" :class="$style.count">
-            +{{ inputValue.length - 1 }}
-          </vue-badge>
-
-          <div :class="$style.icon" :data-testid="'toggle-' + id" @click.stop.prevent="toggleMenu">
-            <vue-icon-chevron-down />
-          </div>
-        </div>
-
-        <vue-text
-          :color="errors.length > 0 ? 'danger' : 'text-medium'"
-          :class="[$style.description, hideDescription && 'sr-only']"
-        >
-          {{ errors.length > 0 ? errorMessage : description }}
-        </vue-text>
+        :tabindex="disabled ? -1 : 0"
+        role="listbox"
+        @click.stop.prevent="toggleMenu"
+        @blur="validate"
+      >
+        {{ displayItem ? displayItem.label : placeholder }}
       </div>
-    </ValidationProvider>
+
+      <vue-badge v-if="multiSelect && inputValue.length > 1" :status="badgeStatus" :class="$style.count">
+        +{{ inputValue.length - 1 }}
+      </vue-badge>
+
+      <div :class="$style.icon" :data-testid="'toggle-' + id" @click.stop.prevent="toggleMenu">
+        <vue-icon-chevron-down />
+      </div>
+    </div>
+
+    <vue-text
+      :color="fieldValidation.valid === false ? 'danger' : 'text-medium'"
+      :class="[$style.description, hideDescription && 'sr-only']"
+    >
+      {{ fieldValidation.valid === false ? errorMessage : description }}
+    </vue-text>
 
     <vue-collapse :show="show" :duration="duration">
       <vue-menu
@@ -101,16 +94,19 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, nextTick } from '@vue/composition-api';
-import { ValidationProvider } from 'vee-validate';
+import { computed, defineComponent, ref, nextTick, inject } from '@vue/composition-api';
 import { IItem } from '@/interfaces/IItem';
+import { getDomRef } from '@/composables/get-dom-ref';
+import { useOutsideClick } from '@/composables/use-outside-click';
+import {
+  registerFieldValidation,
+  registerFieldValidationDefault,
+} from '@/components/forms/VueForm/register-field-validation';
+import { badgeStatusesValidator, horizontalAlignmentValidator, shirtSizeValidator } from '@/components/prop-validators';
 import VueText from '@/components/typography/VueText/VueText.vue';
 import VueCollapse from '@/components/behavior/VueCollapse/VueCollapse.vue';
 import VueMenu from '@/components/data-display/VueMenu/VueMenu.vue';
-import { useOutsideClick } from '@/composables/use-outside-click';
-import { getDomRef } from '@/composables/get-dom-ref';
 import VueIconChevronDown from '@/components/icons/VueIconChevronDown.vue';
-import { badgeStatusesValidator, horizontalAlignmentValidator, shirtSizeValidator } from '@/components/prop-validators';
 import VueBadge from '@/components/data-display/VueBadge/VueBadge.vue';
 
 export default defineComponent({
@@ -121,7 +117,6 @@ export default defineComponent({
     VueMenu,
     VueCollapse,
     VueText,
-    ValidationProvider,
   },
   inheritAttrs: false,
   props: {
@@ -146,6 +141,16 @@ export default defineComponent({
     badgeStatus: { type: String, validator: badgeStatusesValidator, default: 'info' },
   },
   setup(props, { emit }) {
+    const registerValidation = inject(registerFieldValidation, registerFieldValidationDefault);
+    const fieldValidation = registerValidation(
+      props.id,
+      computed(() => props.value),
+      {
+        ...props.validation,
+        required: props.required,
+      },
+      true,
+    );
     const selectRef = getDomRef(null);
     const menuRef = getDomRef(null);
     const show = ref(false);
@@ -254,6 +259,7 @@ export default defineComponent({
     useOutsideClick(selectRef, () => close());
 
     return {
+      fieldValidation,
       selectRef,
       menuRef,
       show,
@@ -298,7 +304,6 @@ export default defineComponent({
       bottom: 0;
       display: inline-flex;
       align-items: center;
-      color: $select-color;
 
       i {
         width: $select-icon-size;
@@ -361,7 +366,7 @@ export default defineComponent({
     color: $select-placeholder-color;
   }
 
-  .error {
+  &.error {
     select {
       background: $select-bg-error;
       border: $select-border-error;
@@ -374,7 +379,7 @@ export default defineComponent({
     }
   }
 
-  .disabled {
+  &.disabled {
     opacity: $select-disabled-disabled-opacity;
   }
 
@@ -385,8 +390,8 @@ export default defineComponent({
   }
 
   .description {
-    display: flex;
-    height: $select-description-height;
+    display: block;
+    min-height: $select-description-height;
     margin-top: $select-description-gap;
   }
 
