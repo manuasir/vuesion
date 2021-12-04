@@ -17,4 +17,5 @@ export interface IField {
   touched: boolean; // field has been focused
   required: boolean; // field is required
   validated: boolean; // has been validated
+  reset: () => void; // reset value
 }

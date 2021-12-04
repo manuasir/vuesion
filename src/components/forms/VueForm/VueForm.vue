@@ -1,5 +1,5 @@
 <template>
-  <form :class="$style.vueForm" @submit.prevent="onSubmit">
+  <form :class="$style.vueForm" @submit.prevent="onSubmit" @reset="onReset">
     <slot :errors="errors" :valid="valid" />
   </form>
 </template>
@@ -133,6 +133,12 @@ export default defineComponent({
         required: rules.required || false,
         validated: false,
         value: value.value,
+        reset: () => {
+          fieldRef.value.valid = null;
+          fieldRef.value.changed = false;
+          fieldRef.value.touched = false;
+          fieldRef.value.validated = false;
+        },
       });
 
       watch(value, (newValue) => {
@@ -189,7 +195,11 @@ export default defineComponent({
       }
     };
 
-    return { form, errors, valid, onSubmit };
+    const onReset = () => {
+      form.value.forEach((fieldRef) => fieldRef.value.reset());
+    };
+
+    return { form, errors, valid, onSubmit, onReset };
   },
 });
 </script>
