@@ -1,5 +1,6 @@
 import { storiesOf } from '@storybook/vue';
 import { action } from '@storybook/addon-actions';
+import { useFormValidation } from '@/components/forms/VueForm/use-form-validation';
 import ComponentDocs from '@/assets/design-system/docs/components/ComponentDocs.vue';
 import VueStack from '@/components/layout/VueStack/VueStack.vue';
 import VueSelect from '@/components/input-and-actions/VueSelect/VueSelect.vue';
@@ -16,6 +17,9 @@ story.add(
         model: '',
         size: { label: 'Medium', value: 'md' },
       };
+    },
+    setup(_: any, { emit }: any) {
+      useFormValidation({ validationDelay: 0, onBlur: true, emit });
     },
     template: `<component-docs
       component-name="Input"

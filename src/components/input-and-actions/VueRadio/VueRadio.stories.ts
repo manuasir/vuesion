@@ -1,5 +1,6 @@
 import { storiesOf } from '@storybook/vue';
 import { action } from '@storybook/addon-actions';
+import { useFormValidation } from '@/components/forms/VueForm/use-form-validation';
 import ComponentDocs from '@/assets/design-system/docs/components/ComponentDocs.vue';
 import VueInline from '@/components/layout/VueInline/VueInline.vue';
 import VueText from '@/components/typography/VueText/VueText.vue';
@@ -16,6 +17,9 @@ story.add(
         model: null,
       };
     },
+    setup(_: any, { emit }: any) {
+      useFormValidation({ validationDelay: 0, onBlur: true, emit });
+    },
     template: `<component-docs
       component-name="Radio"
       usage="Allows users to select exactly one option from a list of 2+, mutually exclusive options."
@@ -28,10 +32,25 @@ story.add(
         :key="n"
         :label="'Radio button enabled ' + n"
         name="groupOne"
+        :validation="{custom: (value) => value.includes('radio')}"
         :id="'radio' + n"
         @click="action"
         v-model="model" />
-      <vue-radio disabled label="Radio button disabled" name="radio" id="radio" @click="action" v-model="model" />
+      <vue-radio
+        label="Click this to trigger validation"
+        name="groupOne"
+        :validation="{custom: (value) => value.includes('radio')}"
+        id="invalid-value"
+        @click="action"
+        v-model="model" />
+      <vue-radio
+        disabled
+        label="Radio button disabled"
+        name="groupOne"
+        :validation="{custom: (value) => value.includes('radio')}"
+        id="radio"
+        @click="action"
+        v-model="model" />
     </vue-inline>
     </component-docs>`,
     methods: {

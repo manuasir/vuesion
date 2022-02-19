@@ -1,6 +1,7 @@
 import { storiesOf } from '@storybook/vue';
 import ComponentDocs from '@/assets/design-system/docs/components/ComponentDocs.vue';
 import VueStack from '@/components/layout/VueStack/VueStack.vue';
+import { useFormValidation } from '@/components/forms/VueForm/use-form-validation';
 import VueTextarea from './VueTextarea.vue';
 
 const story = storiesOf('Input & Actions|Textarea', module) as any;
@@ -13,6 +14,9 @@ story.add(
       return {
         model: '',
       };
+    },
+    setup(_: any, { emit }: any) {
+      useFormValidation({ validationDelay: 0, onBlur: true, emit });
     },
     template: `<component-docs
       component-name="Textarea"

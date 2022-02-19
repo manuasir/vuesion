@@ -1,6 +1,6 @@
 import { render, fireEvent } from '@testing-library/vue';
-import flushPromises from 'flush-promises';
 import { sleep } from '@/test/test-utils';
+import { useFormValidation } from '@/components/forms/VueForm/use-form-validation';
 import VueInput from './VueInput.vue';
 
 describe('VueInput.vue', () => {
@@ -94,13 +94,16 @@ describe('VueInput.vue', () => {
         errorMessage: 'this is the error',
         name: 'test',
         id: 'test',
-        validation: 'required|integer',
+        validation: { integer: true },
         value: 'this is the value',
+      },
+      setup(_: any, { emit }: any) {
+        useFormValidation({ validationDelay: 0, onBlur: true, emit });
       },
     });
 
     await fireEvent.update(getByDisplayValue('this is the value'), 'foo bar');
-    await flushPromises();
+    await fireEvent.blur(getByDisplayValue('foo bar'));
 
     getByText('this is the label');
     getByText('this is the error');

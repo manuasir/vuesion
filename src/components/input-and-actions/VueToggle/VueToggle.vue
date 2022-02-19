@@ -1,7 +1,7 @@
 <template>
   <div
     ref="validator"
-    :class="[$style.vueToggle, disabled && $style.disabled]"
+    :class="[$style.vueToggle, disabled && $style.disabled, fieldValidation.valid === false && $style.error]"
     :tabindex="disabled ? null : 0"
     @click.stop.prevent="onClick"
     @keypress.space.stop.prevent="onClick"
@@ -64,6 +64,7 @@ export default defineComponent({
         required: props.required,
       },
       true,
+      false,
     );
 
     const onClick = (e: Event) => {
@@ -159,6 +160,31 @@ export default defineComponent({
 
   &.disabled {
     opacity: $toggle-disabled-opacity;
+  }
+
+  &.error {
+    .description,
+    label {
+      color: $toggle-error-color;
+    }
+
+    .toggle {
+      background: $toggle-bg-error;
+
+      .handle {
+        background: $toggle-handle-bg-error;
+      }
+    }
+
+    &:hover {
+      input ~ .toggle {
+        background: $toggle-bg-error;
+
+        .handle {
+          background: $toggle-handle-bg-error;
+        }
+      }
+    }
   }
 }
 </style>

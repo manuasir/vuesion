@@ -45,9 +45,9 @@
         :size="sizeAttribute"
         v-bind="$attrs"
         v-on="{
-            ...$listeners,
-            input: onInput,
-          }"
+          ...$listeners,
+          input: onInput,
+        }"
       />
 
       <div

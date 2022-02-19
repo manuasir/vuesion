@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="[$style.checkbox, disabled && $style.disabled]"
+    :class="[$style.checkbox, disabled && $style.disabled, fieldValidation.valid === false && $style.error]"
     :tabindex="disabled ? null : 0"
     @click.stop.prevent="onClick"
     @keypress.space.stop.prevent="onClick"
@@ -47,6 +47,7 @@ import {
   registerFieldValidation,
   registerFieldValidationDefault,
 } from '@/components/forms/VueForm/register-field-validation';
+import { IValidationRules } from '@/components/forms/VueForm/IForm';
 import VueText from '@/components/typography/VueText/VueText.vue';
 
 export default defineComponent({
@@ -64,7 +65,7 @@ export default defineComponent({
     hideLabel: { type: Boolean, default: false },
     description: { type: String, default: null },
     required: { type: Boolean, default: false },
-    validation: { type: [String, Object], default: null }, // TODO: needs fine tuning
+    validation: { type: Object as () => IValidationRules, default: null },
     disabled: { type: Boolean, default: false },
     checked: { type: Boolean, default: false },
   },
@@ -78,6 +79,7 @@ export default defineComponent({
         required: props.required,
       },
       true,
+      false,
     );
 
     const onClick = (e: Event) => {
@@ -170,6 +172,23 @@ export default defineComponent({
 
   &.disabled {
     opacity: $checkbox-disabled-disabled-opacity;
+  }
+
+  &.error {
+    .description,
+    label {
+      color: $checkbox-error-color;
+    }
+
+    .checkmark {
+      border-color: $checkbox-error-color;
+    }
+
+    &:hover {
+      input ~ .checkmark {
+        border-color: $checkbox-error-color;
+      }
+    }
   }
 }
 </style>

@@ -3,6 +3,7 @@ import { action } from '@storybook/addon-actions';
 import ComponentDocs from '@/assets/design-system/docs/components/ComponentDocs.vue';
 import VueInline from '@/components/layout/VueInline/VueInline.vue';
 import VueText from '@/components/typography/VueText/VueText.vue';
+import { useFormValidation } from '@/components/forms/VueForm/use-form-validation';
 import VueToggle from './VueToggle.vue';
 
 const story = storiesOf('Input & Actions|Toggle', module) as any;
@@ -16,6 +17,9 @@ story.add(
         model: false,
       };
     },
+    setup(_: any, { emit }: any) {
+      useFormValidation({ validationDelay: 0, onBlur: true, emit });
+    },
     template: `<component-docs
       component-name="Toggle"
       usage="Allows users to choose between two mutually exclusive options. There is always a default value and settings should be saved and take into effect immediately."
@@ -24,7 +28,8 @@ story.add(
     <vue-inline stack-phone stack-tablet-portrait stack-tablet-landscape stack-small-desktop stack-large-desktop>
       <vue-text look="small-title" weight="semi-bold">Model: {{ model }}</vue-text>
       <vue-toggle label="Toggle enabled" name="toggle" id="toggle" @click="action" v-model="model" />
-      <vue-toggle disabled label="Toggle disabled" name="toggle" id="toggle" @click="action" v-model="model" />
+      <vue-toggle label="Toggle enabled" name="toggle2" id="toggle2" required @click="action" v-model="model" />
+      <vue-toggle disabled label="Toggle disabled" name="toggle3" id="toggle3" @click="action" v-model="model" />
     </vue-inline>
     </component-docs>`,
     methods: {

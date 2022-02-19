@@ -25,16 +25,16 @@
         :disabled="disabled"
         :multiple="multiSelect"
         :class="[
-              $style.nativeSelect,
-              placeholder && inputValue.length === 0 && $style.hasPlaceholder,
-              multiSelect && inputValue.length > 1 && $style.hasCount,
-              $style[size],
-            ]"
+          $style.nativeSelect,
+          placeholder && inputValue.length === 0 && $style.hasPlaceholder,
+          multiSelect && inputValue.length > 1 && $style.hasCount,
+          $style[size],
+        ]"
         v-bind="$attrs"
         v-on="{
-              ...$listeners,
-              input: onInput,
-            }"
+          ...$listeners,
+          input: onInput,
+        }"
       >
         <option v-if="placeholder && !inputValue" value="" disabled selected>{{ placeholder }}</option>
         <option
@@ -52,15 +52,14 @@
         :data-testid="'custom-' + id"
         :aria-expanded="show.toString()"
         :class="[
-              $style.customSelect,
-              placeholder && inputValue.length === 0 && $style.hasPlaceholder,
-              multiSelect && inputValue.length > 1 && $style.hasCount,
-              $style[size],
-            ]"
+          $style.customSelect,
+          placeholder && inputValue.length === 0 && $style.hasPlaceholder,
+          multiSelect && inputValue.length > 1 && $style.hasCount,
+          $style[size],
+        ]"
         :tabindex="disabled ? -1 : 0"
         role="listbox"
         @click.stop.prevent="toggleMenu"
-        @blur="validate"
       >
         {{ displayItem ? displayItem.label : placeholder }}
       </div>

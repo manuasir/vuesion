@@ -8,6 +8,7 @@ import VueInput from '@/components/input-and-actions/VueInput/VueInput.vue';
 import VueCollapse from '@/components/behavior/VueCollapse/VueCollapse.vue';
 import VueTiles from '@/components/layout/VueTiles/VueTiles.vue';
 import { badgeStatuses } from '@/components/prop-validators';
+import { useFormValidation } from '@/components/forms/VueForm/use-form-validation';
 import VueSelect from './VueSelect.vue';
 
 const story = storiesOf('Input & Actions|Select', module) as any;
@@ -22,10 +23,9 @@ story.add(
         label: 'Label',
         hideLabel: false,
         hideDescription: false,
-        required: false,
-        validation: '',
         disabled: false,
         items: [
+          { label: 'none', value: '' },
           { label: 'foo', value: 'foo' },
           { label: 'bar', value: 'bar' },
           { label: 'baz', value: 'baz' },
@@ -43,6 +43,9 @@ story.add(
         model: null,
       };
     },
+    setup(_: any, { emit }: any) {
+      useFormValidation({ validationDelay: 0, onBlur: true, emit });
+    },
     template: `
       <component-docs
         component-name="Select"
@@ -58,14 +61,12 @@ story.add(
           <vue-toggle id="multiSelect" v-model="multiSelect" label="Multi select" name="multiSelect"/>
           <vue-toggle id="hideLabel" v-model="hideLabel" label="Hide label" name="hideLabel"/>
           <vue-toggle id="hideDescription" v-model="hideDescription" label="Hide description" name="hideDescription"/>
-          <vue-toggle id="required" v-model="required" label="Required" name="required"/>
           <vue-toggle id="disabled" v-model="disabled" label="Disabled" name="disabled"/>
         </vue-inline>
 
         <vue-collapse :show="showProps">
           <vue-tiles :columns="[1, 2]">
             <vue-input id="label" v-model="label" label="Label" name="label"/>
-            <vue-input id="validation" v-model="validation" label="Validation" name="validation"/>
             <vue-input id="placeholder" v-model="placeholder" label="Placeholder" name="placeholder"/>
             <vue-input id="description" v-model="description" label="Description" name="description"/>
             <vue-input id="errorMessage" v-model="errorMessage" label="Error message" name="errorMessage"/>
@@ -126,8 +127,7 @@ story.add(
             :label="label"
             :hide-label="hideLabel"
             :hide-description="hideDescription"
-            :required="required"
-            :validation="validation"
+            required
             :disabled="disabled"
             :items="items"
             :placeholder="placeholder"

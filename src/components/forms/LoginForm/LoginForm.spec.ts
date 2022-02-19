@@ -1,36 +1,33 @@
-import { createLocalVue, mount } from '@vue/test-utils';
 import { i18n } from '@/test/i18n';
+import { fireEvent, render, RenderResult } from '@testing-library/vue';
 import LoginForm from './LoginForm.vue';
 
-const localVue = createLocalVue();
-
 describe('LoginForm.vue', () => {
-  test('renders component', () => {
-    const wrapper = mount<any>(LoginForm, {
-      i18n,
-      localVue,
-    });
+  let harness: RenderResult;
 
-    expect(wrapper.vm).toBeDefined();
+  beforeEach(() => {
+    harness = render(LoginForm, {
+      i18n,
+    });
   });
 
-  test('should submit form values', async () => {
-    const wrapper = mount<any>(LoginForm, {
-      i18n,
-      localVue,
+  test('fill out form and emit submit event', async () => {
+    const { getByText, getByLabelText, emitted } = harness;
+
+    await fireEvent.update(getByLabelText('common.username *'), 'User_1337');
+    await fireEvent.blur(getByLabelText('common.username *'));
+    await fireEvent.update(getByLabelText('common.password *'), 'easy-password');
+    await fireEvent.blur(getByLabelText('common.password *'));
+    await fireEvent.click(getByText('auth.LoginForm.cta'));
+    expect(emitted().submit).toBeFalsy();
+
+    await fireEvent.update(getByLabelText('common.password *'), '!123AjlbsdjkSsjdfb');
+    await fireEvent.blur(getByLabelText('common.password *'));
+    await fireEvent.click(getByText('auth.LoginForm.cta'));
+
+    expect(emitted().submit[0][0]).toEqual({
+      password: '!123AjlbsdjkSsjdfb',
+      username: 'User_1337',
     });
-
-    wrapper.setData({
-      username: 'foo',
-      password: '123456',
-    });
-
-    wrapper.find('form').trigger('submit');
-    await wrapper.vm.$nextTick();
-
-    const actual = wrapper.emitted('submit');
-    const expected = [[{ password: '123456', username: 'foo' }]];
-
-    expect(actual).toEqual(expected);
   });
 });

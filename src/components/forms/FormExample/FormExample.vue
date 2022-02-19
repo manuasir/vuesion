@@ -19,8 +19,9 @@
                   name="firstname"
                   required
                   label="First name"
-                  hide-description
                   placeholder="First name"
+                  description="The name people call you."
+                  error-message="This field is required."
                   autofocus
                 />
                 <vue-input
@@ -29,8 +30,9 @@
                   name="lastname"
                   required
                   label="Last name"
-                  hide-description
                   placeholder="Last name"
+                  description="Your family name."
+                  error-message="This field is required."
                 />
                 <vue-input
                   id="email"
@@ -38,10 +40,11 @@
                   name="email"
                   required
                   type="email"
-                  hide-description
                   label="E-mail"
                   placeholder="E-mail"
                   :validation="{ email: true }"
+                  description="Your email address."
+                  error-message="This field is required and requires an @ symbol."
                 />
                 <vue-stack>
                   <vue-checkbox
@@ -66,14 +69,21 @@
                     v-model="model.subscription"
                     name="subscription"
                     label="Yearly subscription"
-                    required
+                    :validation="{ custom: (value) => value !== 'none' }"
                   />
                   <vue-radio
                     id="monthly-subscription"
                     v-model="model.subscription"
                     name="subscription"
                     label="Monthly subscription"
-                    required
+                    :validation="{ custom: (value) => value !== 'none' }"
+                  />
+                  <vue-radio
+                    id="none"
+                    v-model="model.subscription"
+                    name="subscription"
+                    label="None"
+                    :validation="{ custom: (value) => value !== 'none' }"
                   />
                 </vue-inline>
               </vue-stack>
@@ -87,9 +97,10 @@
                   name="street"
                   required
                   label="Street"
-                  hide-description
                   placeholder="Street"
                   :disabled="addressDisabled"
+                  description="The street you live in."
+                  error-message="This field is required."
                 />
 
                 <vue-input
@@ -98,11 +109,11 @@
                   name="zipCode"
                   required
                   label="Zip code"
-                  hide-description
                   placeholder="Zip code"
                   :validation="{ integer: true }"
                   :error-message="$t('components.formExample.zipCode.error' /* Please enter a Number */)"
                   :disabled="addressDisabled"
+                  description="The postal code of the city you live in."
                 />
 
                 <vue-input
@@ -111,9 +122,10 @@
                   name="city"
                   required
                   label="City"
-                  hide-description
                   placeholder="City"
                   :disabled="addressDisabled"
+                  description="The city you live in."
+                  error-message="This field is required."
                 />
 
                 <vue-select
@@ -124,6 +136,8 @@
                   :items="countryOptions"
                   required
                   :disabled="addressDisabled"
+                  description="The country you live in."
+                  error-message="This field is required."
                 />
               </vue-stack>
             </vue-column>
@@ -136,7 +150,8 @@
             label="Notes"
             placeholder="Please leave some notes..."
             required
-            hide-description
+            description="Please add some notes."
+            error-message="This field is required."
           />
 
           <vue-inline align="right">
@@ -206,7 +221,7 @@ export default defineComponent({
 
     // computed
     const countryOptions = computed(() => [
-      { label: '', value: '' },
+      { label: 'None', value: '' },
       { label: 'Brasil', value: 'br' },
       { label: 'Germany', value: 'de' },
       { label: 'Great Britain', value: 'uk' },

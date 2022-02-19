@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="[$style.radio, disabled && $style.disabled]"
+    :class="[$style.radio, disabled && $style.disabled, fieldValidation.valid === false && $style.error]"
     :tabindex="disabled ? null : 0"
     @click.stop.prevent="onClick"
     @keypress.space.stop.prevent="onClick"
@@ -37,6 +37,7 @@ import {
   registerFieldValidation,
   registerFieldValidationDefault,
 } from '@/components/forms/VueForm/register-field-validation';
+import { IValidationRules } from '@/components/forms/VueForm/IForm';
 
 export default defineComponent({
   name: 'VueRadio',
@@ -51,7 +52,7 @@ export default defineComponent({
     label: { type: String, required: true },
     description: { type: String, default: null },
     required: { type: Boolean, default: false },
-    validation: { type: [String, Object], default: null }, // TODO: needs fine tuning
+    validation: { type: Object as () => IValidationRules, default: null },
     disabled: { type: Boolean, default: false },
     value: { type: String, default: null },
   },
@@ -65,6 +66,7 @@ export default defineComponent({
         required: props.required,
       },
       true,
+      false,
     );
 
     const onClick = (e: Event) => {
@@ -157,6 +159,23 @@ export default defineComponent({
 
   &.disabled {
     opacity: $radio-disabled-disabled-opacity;
+  }
+
+  &.error {
+    .description,
+    label {
+      color: $radio-error-color;
+    }
+
+    .checkmark {
+      border-color: $radio-error-color;
+    }
+
+    &:hover {
+      input ~ .checkmark {
+        border-color: $radio-error-color;
+      }
+    }
   }
 }
 </style>
